@@ -1,5 +1,7 @@
 import array
-import random
+from math import *
+import cmath
+from random import random
 class bmp:
     """ bmp data structure """
 
@@ -44,19 +46,14 @@ class bmp:
                 print('')
         print('')
     def paint_bgcolor(self, color=0xffffff):
-##        self.rgbData = []
-##        for r in range(self.h):
-##            self.rgbDataRow = []
-##            for c in range(self.w):
-##                self.rgbDataRow.append(color)
-##            self.rgbData.append(self.rgbDataRow)
-        rgbDataRow = [color] * self.w
-        self.rgbData = [rgbDataRow.copy() for i in range(self.h)]
+        self.rgbData = []
+        for r in range(self.h):
+            self.rgbDataRow = []
+            for c in range(self.w):
+                self.rgbDataRow.append(color)
+            self.rgbData.append(self.rgbDataRow)
     def set_at(self,x, y, color):
-        try:
-            self.rgbData[y][x] = color
-        except:
-            pass
+        self.rgbData[y][x] = color
     def paint_line(self, x1, y1, x2, y2, color):
         k = (y2 - y1) / (x2 - x1)
         for x in range(x1, x2+1):
@@ -91,6 +88,17 @@ class bmp:
             for i in range(zeroBytes):
                 f.write(bytes(0x00))
         f.close()
+e = [-2, 0, 0, 0, 0, 1]
+def f(x):
+    #return sum(e[i] * x ** i for i in range(6))
+    return cmath.sin(x)
+def fprime(x):
+    #return sum(i * e[i] * x ** (i - 1) for i in range(6))
+    return cmath.cos(x)
+def newton(x):
+    if fprime(x) == 0:
+        return None
+    return x - f(x) / fprime(x)
 def calc_color(x):
     if 0 <= x < 16:
         return 0xffffff - x * 256 * 17
@@ -112,33 +120,42 @@ def calc_x(m, r, w, x):
     return m + (x - w) / r
 def calc_y(m, r, h, y):
     return m + (y - h) / r
-#if __name__ == '__main__':
-def main(g):
-    m = []
-    for i in range(4):
-        m.append([])
-        for j in range(6):
-            m[i].append(random.random() * 2 - 1)
-
-    print(m)
-    image = bmp(2048, 2048)
+def rcalc_x(m, r, w, x):
+    return (r - m) * x + w
+def rcalc_y(m, r, h, y):
+    return (r - m) * y + h
+if __name__ == '__main__':
+    image = bmp(2048, 1536)
     image.gen_bmp_header()
     image.print_bmp_header()
     image.paint_bgcolor(0xffffff)
-    print('ok')
-    x = 0
-    y = 0
-    for i in range(1048576):
-        k = random.randint(0, 3)
-        x, y = m[k][0] * x + m[k][1] * y + m[k][2], m[k][3] * x + m[k][4] * y + m[k][5]
-        image.set_at(int(x * 256 + 1024), int(y * 256 + 1024), 0x000000)
-        #print(x, y)
-        if i % 16 == 15:
-            #print(f'rendering... {i / 2048 * 100:.2f}%({i}/2048)')
-            pass
-    #image.save_image("barnsley-13.bmp")
-    image.save_image('barnsley-%d.bmp' % g)
-    print(g)
-if __name__ == '__main__':
-    for i in range(618, 1001):
-        main(i)
+    for i in range(1000):
+        x = random() * 16 - 8
+        y = random() * 16 - 8
+        z0 = complex(x, y)
+        z1 = newton(z0)
+        for j in range(112):
+            z0 = z1
+            z1 = newton(z0)
+            #print(z1)
+            if z1 == None:
+                print('n')
+                break
+            i0 = rcalc_x(0, 384, 1024, z0.real)
+            j0 = rcalc_y(0, 384, 768, z0.imag)
+            i1 = rcalc_x(0, 384, 1024, z1.real)
+            j1 = rcalc_y(0, 384, 768, z1.imag)
+            i0 = int(i0)
+            j0 = int(j0)
+            i1 = int(i1)
+            j1 = int(j1)
+            try:
+                image.paint_line(i0, j0, i1, j1, calc_color(j))
+                #print(j)
+                #print(z0, z1)
+            except IndexError:
+                print('i')
+                break
+            except ZeroDivisionError:
+                pass
+    image.save_image("newton-4.bmp")
