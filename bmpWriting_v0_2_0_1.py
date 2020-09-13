@@ -1,13 +1,13 @@
 '''
-v0.2.0pre1
+v0.2.0pre2
 For reading opreations of bitmap photo(*.bmp).
 An optimized version with higher efficiency.
 Raw code: http://exasic.com/article/index.php?md=py-bmp
 '''
-import array
+import array as _array
 class Image:
-    def __init__(self, width, height, path = None, bgcolor = 0xffffff, \
-                 *, __use_rgb_data = True):
+    def __init__(self, width, height, path = None, bgcolor = 0xffffff,
+                 virtual_memory = False, readonly = False):
         self.width = width
         self.height = height
         if path:
@@ -30,9 +30,11 @@ class Image:
         self._replace(18, 4, self.width)
         self._replace(22, 4, self.height)
         self._replace(34, 4, self.data_size)
-        if __use_rgb_data:
+        if not virtual_memory:
             self.rgb_data = [[bgcolor] * self.width
                              for i in range(self.height)]
+        elif readonly:
+            file = open()
     def _replace(self, offset, length, number):
         tmp = number
         for i in range(offset, offset + length):
@@ -48,7 +50,7 @@ class Image:
         if path:
             self.path = path
         f = open(path, 'wb')
-        arr = array.array('B', self.bmp_header)
+        arr = _array._array('B', self.bmp_header)
         for i in range(self.height):
             for j in range(self.width):
                 arr.extend((self.rgb_data[i][j]        & 0xff,
@@ -57,31 +59,31 @@ class Image:
             arr.extend((*bytes(self.pad_bytes), ))
         f.write(arr.tobytes())   
         f.close()
-class Image_less_memory(Image):
-    def __init__(self, width, height, path, bgcolor = 0xffffff):
-        super().__init__(width, height, path, bgcolor,
-                         __use_rgb_data = False) 
-        f = open(path, 'wb')
-        arr = array.array('B', self.bmp_header)
-        f.write(arr.tobytes())
-        arr_row = bgcolor.to_bytes(3, 'big') * self.width + \
-                  bytes(self.pad_bytes)
-        for i in range(self.height):
-            f.write(arr_row)
-        f.close()
-    def set_at(self, x, y, color):
-        f = open(path, 'ab')
-        offset = (int(y) * self.width + int(x)) * 3 + 54
-        f.seek(offset, 0)
-        f.write(color.to_bytes(3, 'big'))
-        f.close()
-    def get_at(self, x, y):
-        f = open(path, 'rb')
-        offset = (int(y) * self.width + int(x)) * 3 + 54
-        f.seek(offset, 0)
-        color = f.read(3)
-        f.close()
-        return int.from_bytes(color, 'big')
+##class Image_less_memory(Image):
+##    def __init__(self, width, height, path, bgcolor = 0xffffff):
+##        super().__init__(width, height, path, bgcolor,
+##                         __use_rgb_data = False) 
+##        f = open(path, 'wb')
+##        arr = _array._array('B', self.bmp_header)
+##        f.write(arr.tobytes())
+##        arr_row = bgcolor.to_bytes(3, 'big') * self.width + \
+##                  bytes(self.pad_bytes)
+##        for i in range(self.height):
+##            f.write(arr_row)
+##        f.close()
+##    def set_at(self, x, y, color):
+##        f = open(path, 'ab')
+##        offset = (int(y) * self.width + int(x)) * 3 + 54
+##        f.seek(offset, 0)
+##        f.write(color.to_bytes(3, 'big'))
+##        f.close()
+##    def get_at(self, x, y):
+##        f = open(path, 'rb')
+##        offset = (int(y) * self.width + int(x)) * 3 + 54
+##        f.seek(offset, 0)
+##        color = f.read(3)
+##        f.close()
+##        return int.from_bytes(color, 'big')
 class Local_coordination:
     def __init__(self, typestr, m_lt, s_rb, scale):
         if typestr == 'E' or typestr == 'e':
