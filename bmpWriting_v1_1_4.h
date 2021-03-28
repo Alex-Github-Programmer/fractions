@@ -91,7 +91,7 @@ inline void BitmapClose(BITMAP* bitmap) {
 	fclose(bitmap -> file);
 }
 
-#ifndef BITMAP_CORE
+#ifndef _BITMAP_CORE
 inline _ulong BitmapRainbowColor(_ulong x) {
 	switch(x / 15) {
 		case 0: return 0xff00ff | (15-x) * 17 << 8;
