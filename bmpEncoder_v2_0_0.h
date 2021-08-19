@@ -28,7 +28,7 @@ typedef uint8_t* BMP;
 typedef uint32_t* PALETTE;
 
 BMP BMPInit(int32_t width, int32_t height, uint16_t bitCount, uint32_t clrUsed, 
-			uint32_t* palette, uint32_t* absHeight, uint32_t* rowSize, 
+			PALETTE palette, uint32_t* absHeight, uint32_t* rowSize, 
 			uint32_t* pixelArraySize, uint32_t* offBits, uint32_t* size) {
 	if(bitCount!=1 &&bitCount!=2 && bitCount!=4 && bitCount!=8 && bitCount!=16 
 		&& bitCount!=24 && bitCount!=32) return NULL;
